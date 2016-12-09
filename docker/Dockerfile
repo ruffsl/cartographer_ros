@@ -26,10 +26,6 @@ RUN rosdep update && \
       --as-root=apt:false && \
     rm -rf /var/lib/apt/lists/*
 
-# HACK, replacing shell with bash for later source, catkin build commands
-RUN mv /bin/sh /bin/sh-old && \
-    ln -s /bin/bash /bin/sh
-
 # build ros package
 WORKDIR $CATKIN_WS
 ENV TERM xterm
@@ -38,3 +34,13 @@ RUN catkin config \
       --extend /opt/ros/$ROS_DISTRO \
       --install && \
     catkin build
+
+RUN apt update && apt install -y \
+      byobu \
+      ros-{$ROS_DISTRO}-robot && \
+    rm -rf /var/lib/apt/lists/*
+
+# nvidia-docker hooks
+LABEL com.nvidia.volumes.needed="nvidia_driver"
+ENV PATH /usr/local/nvidia/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
